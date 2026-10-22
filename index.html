@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11151d">
+  <meta name="description" content="Tạp hóa Ku-mi - khám phá sản phẩm, xem giá và liên hệ tư vấn.">
+  <title>Tạp hóa Ku-mi | Chọn món bạn thích</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
+  <header class="site-header">
+    <a class="brand" href="#" aria-label="Tạp hóa Ku-mi - trang chủ">
+      <span class="brand-mark">K<span>+</span></span>
+      <span><strong>TẠP HÓA KU-MI</strong><small>YOUR DAILY LOOT</small></span>
+    </a>
+    <nav class="top-nav"><a href="#products">Sản phẩm</a><a href="#about">Về Ku-mi</a></nav>
+    <a class="header-contact" id="headerZalo" href="#" target="_blank" rel="noopener">Liên hệ <span>↗</span></a>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="pulse"></span> KU-MI MARKET / ONLINE</div>
+        <h1>Đồ hay ho.<br><span>Giá dễ chịu.</span></h1>
+        <p>Ghé xem những món được chọn lọc tại Ku-mi. Tìm sản phẩm, xem thông tin rồi nhắn cho shop để được tư vấn.</p>
+        <a class="primary-btn" href="#products">Khám phá sản phẩm <span>↓</span></a>
+        <div class="hero-stats"><div><strong id="heroCount">—</strong><small>sản phẩm đang hiển thị</small></div><div><strong>0%</strong><small>thanh toán online</small></div></div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+        <div class="loot-card"><div class="loot-top"><span>KU-MI SELECT</span><span class="loot-dot">●</span></div><div class="loot-symbol">K<span>+</span></div><div class="loot-bottom"><span>DAILY DISCOVERY</span><span>KM / 001</span></div></div>
+        <div class="floating-chip chip-one">✦ Curated finds</div><div class="floating-chip chip-two">● New drop</div>
+      </div>
+    </section>
+
+    <section class="catalog section-wrap" id="products">
+      <div class="section-heading"><div><div class="eyebrow">THE CATALOG</div><h2>Tìm món của bạn<span>.</span></h2></div><p id="catalogHint">Danh sách được đồng bộ từ Google Sheets.</p></div>
+      <div class="filters">
+        <label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Tìm theo tên hoặc mô tả..." autocomplete="off"><kbd>/</kbd></label>
+        <label class="filter-field"><span>Danh mục</span><select id="categoryFilter"><option value="">Tất cả danh mục</option></select></label>
+        <label class="filter-field"><span>Giá</span><select id="priceFilter"><option value="">Mọi mức giá</option><option value="0-100000">Dưới 100.000đ</option><option value="100000-300000">100.000–300.000đ</option><option value="300000-1000000">300.000–1.000.000đ</option><option value="1000000+">Trên 1.000.000đ</option></select></label>
+        <label class="filter-field"><span>Sắp xếp</span><select id="sortFilter"><option value="featured">Nổi bật trước</option><option value="price-asc">Giá tăng dần</option><option value="price-desc">Giá giảm dần</option><option value="name">Tên A–Z</option></select></label>
+      </div>
+      <div class="catalog-meta"><span id="resultCount">Đang tải sản phẩm…</span><button id="resetFilters" class="text-button" type="button">Xóa bộ lọc ↺</button></div>
+      <div id="statusBox" class="status-box" role="status" aria-live="polite">Đang kết nối dữ liệu sản phẩm…</div>
+      <div id="productGrid" class="product-grid"></div>
+      <div id="emptyState" class="empty-state" hidden><div class="empty-icon">⌕</div><h3>Chưa tìm thấy món phù hợp</h3><p>Thử đổi từ khóa hoặc xóa bớt bộ lọc nhé.</p></div>
+    </section>
+
+    <section class="about section-wrap" id="about">
+      <div class="about-mark">K<span>+</span></div>
+      <div><div class="eyebrow">A SMALL SHOP, GOOD FINDS</div><h2>Ku-mi — mua sắm theo cách <span>đơn giản hơn.</span></h2><p>Website dùng để giới thiệu sản phẩm và cung cấp thông tin. Bạn trao đổi trực tiếp với shop để kiểm tra tình trạng, phí giao hàng và cách đặt mua. Website không thu thập thanh toán trực tuyến.</p></div>
+      <a id="aboutZalo" class="outline-btn" href="#" target="_blank" rel="noopener">Chat với Ku-mi ↗</a>
+    </section>
+  </main>
+
+  <footer class="site-footer"><a class="footer-brand" href="#">TẠP HÓA KU-MI <span>© <span id="year"></span></span></a><span>Built for curious people.</span><a href="#products">Lên đầu trang ↑</a></footer>
+
+  <div id="productModal" class="modal" hidden>
+    <button class="modal-backdrop" id="modalBackdrop" aria-label="Đóng chi tiết"></button>
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button id="modalClose" class="modal-close" aria-label="Đóng">×</button>
+      <div id="modalContent"></div>
+    </section>
+  </div>
+  <noscript><div class="noscript">Website cần bật JavaScript để tải dữ liệu sản phẩm.</div></noscript>
+</body>
+</html>
