@@ -219,6 +219,36 @@ function openDetails(p) {
   $("productModal").hidden = false; document.body.style.overflow = "hidden"; $("modalClose").focus();
 }
 function closeDetails() { $("productModal").hidden = true; document.body.style.overflow = ""; }
+function openImageViewer(src, alt = "") {
+  if (!src) return;
+
+  $("imageViewerImg").src = src;
+  $("imageViewerImg").alt = alt;
+  $("imageViewer").hidden = false;
+}
+
+function closeImageViewer() {
+  $("imageViewer").hidden = true;
+  $("imageViewerImg").src = "";
+}
+
+function bindImageViewer() {
+  $("imageViewerClose").addEventListener("click", closeImageViewer);
+
+  $("imageViewer").addEventListener("click", (event) => {
+    if (event.target === $("imageViewer")) {
+      closeImageViewer();
+    }
+  });
+
+  $("imageViewerImg").addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeImageViewer();
+  });
+}
 function bindEvents() {
   ["searchInput","categoryFilter","priceFilter","sortFilter"].forEach(id => $(id).addEventListener(id === "searchInput" ? "input" : "change", applyFilters));
   $("resetFilters").addEventListener("click", () => { $("searchInput").value=""; $("categoryFilter").value=""; $("priceFilter").value=""; $("sortFilter").value="featured"; applyFilters(); });
