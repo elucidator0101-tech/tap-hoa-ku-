@@ -30,13 +30,13 @@ function getImageUrl(value) {
     return `https://drive.google.com/uc?export=view&id=${match[1]}`;
   }
 
-  // Hỗ trợ link Google Drive dạng open?id=...
-  const openMatch = url.match(
-    /drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/
+  // Hỗ trợ link Google Drive dạng open?id=... và thumbnail?id=...
+  const driveIdMatch = url.match(
+    /drive\.google\.com\/(?:open|thumbnail)\?[^#]*\bid=([a-zA-Z0-9_-]+)/
   );
 
-  if (openMatch) {
-    return `https://drive.google.com/uc?export=view&id=${openMatch[1]}`;
+  if (driveIdMatch) {
+    return `https://drive.google.com/thumbnail?id=${driveIdMatch[1]}&sz=w1000`;
   }
 
   return url;
@@ -354,11 +354,84 @@ function ensureImageViewer() {
 
 function openImageViewer(src, alt = "") {
   if (!src) return;
+
   const overlay = ensureImageViewer();
   const image = $("imageViewerImg");
-  image.src = src;
-  image.alt = alt;
+
+  // Tạo thông báo lỗi và nút mở ảnh gốc ngay trong cửa sổ zoom.
+  let message = document.getElementById("imageViewerMessage");
+  if (!message) {
+    message = document.createElement("div");
+    message.id = "imageViewerMessage";
+    Object.assign(message.style, {
+      display: "none",
+      position: "absolute",
+      left: "20px",
+      right: "20px",
+      bottom: "24px",
+      color: "#fff",
+      textAlign: "center",
+      font: "14px/1.5 system-ui, sans-serif",
+      zIndex: "2"
+    });
+    overlay.appendChild(message);
+  }
+
+  const originalSrc = String(src).trim();
+  const driveIdMatch = originalSrc.match(/[?&]id=([a-zA-Z0-9_-]+)/) ||
+    originalSrc.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  const candidates = [originalSrc];
+
+  // Thử các dạng URL ảnh Google Drive tương đương nếu link thumbnail lỗi.
+  if (driveIdMatch) {
+    const id = driveIdMatch[1];
+    candidates.push(
+      `https://drive.google.com/thumbnail?id=${id}&sz=w2000`,
+      `https://drive.google.com/uc?export=view&id=${id}`,
+      `https://drive.google.com/uc?export=download&id=${id}`
+    );
+  }
+
+  const urls = [...new Set(candidates)];
+  let attempt = 0;
+  message.style.display = "none";
+  message.replaceChildren();
+  image.alt = alt || "Ảnh sản phẩm";
+  image.style.display = "block";
+  image.onload = () => {
+    message.style.display = "none";
+    image.style.display = "block";
+  };
+  image.onerror = () => {
+    attempt += 1;
+    if (attempt < urls.length) {
+      image.src = urls[attempt];
+      return;
+    }
+
+    image.style.display = "none";
+    message.replaceChildren();
+    const text = document.createElement("div");
+    text.textContent = "Không tải được ảnh zoom. Hãy kiểm tra quyền chia sẻ Google Drive (Bất kỳ ai có đường liên kết – Người xem).";
+    const link = document.createElement("a");
+    link.href = originalSrc;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = "Mở ảnh gốc trong tab mới ↗";
+    Object.assign(link.style, {
+      display: "inline-block",
+      marginTop: "10px",
+      color: "#fff",
+      textDecoration: "underline"
+    });
+    message.append(text, link);
+    message.style.display = "block";
+    console.error("[Ku-mi] Không tải được ảnh zoom:", urls);
+  };
+
   overlay.style.display = "flex";
+  image.src = "";
+  image.src = urls[0];
 }
 
 function closeImageViewer() {
