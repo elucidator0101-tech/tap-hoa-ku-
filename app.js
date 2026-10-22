@@ -358,7 +358,6 @@ function openImageViewer(src, alt = "") {
   const overlay = ensureImageViewer();
   const image = $("imageViewerImg");
 
-  // Tạo thông báo lỗi và nút mở ảnh gốc ngay trong cửa sổ zoom.
   let message = document.getElementById("imageViewerMessage");
   if (!message) {
     message = document.createElement("div");
@@ -378,41 +377,34 @@ function openImageViewer(src, alt = "") {
   }
 
   const originalSrc = String(src).trim();
-  const driveIdMatch = originalSrc.match(/[?&]id=([a-zA-Z0-9_-]+)/) ||
+  const idMatch =
+    originalSrc.match(/[?&]id=([a-zA-Z0-9_-]+)/) ||
     originalSrc.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-  const candidates = [originalSrc];
 
-  // Thử các dạng URL ảnh Google Drive tương đương nếu link thumbnail lỗi.
-  if (driveIdMatch) {
-    const id = driveIdMatch[1];
-    candidates.push(
+  const urls = [originalSrc];
+  if (idMatch) {
+    const id = idMatch[1];
+    urls.push(
       `https://drive.google.com/thumbnail?id=${id}&sz=w2000`,
-      `https://drive.google.com/uc?export=view&id=${id}`,
-      `https://drive.google.com/uc?export=download&id=${id}`
+      `https://drive.google.com/thumbnail?id=${id}&sz=w1000`,
+      `https://drive.google.com/uc?export=view&id=${id}`
     );
   }
 
-  const urls = [...new Set(candidates)];
+  const uniqueUrls = [...new Set(urls)];
   let attempt = 0;
-  message.style.display = "none";
-  message.replaceChildren();
-  image.alt = alt || "Ảnh sản phẩm";
-  image.style.display = "block";
-  image.onload = () => {
-    message.style.display = "none";
-    image.style.display = "block";
-  };
-  image.onerror = () => {
-    attempt += 1;
-    if (attempt < urls.length) {
-      image.src = urls[attempt];
-      return;
-    }
+  let timeoutId;
 
+  const showFailure = () => {
+    clearTimeout(timeoutId);
+    image.onload = null;
+    image.onerror = null;
     image.style.display = "none";
     message.replaceChildren();
+
     const text = document.createElement("div");
-    text.textContent = "Không tải được ảnh zoom. Hãy kiểm tra quyền chia sẻ Google Drive (Bất kỳ ai có đường liên kết – Người xem).";
+    text.textContent =
+      "Ảnh không phản hồi hoặc bị Google Drive chặn tải. Hãy mở ảnh gốc để kiểm tra quyền chia sẻ.";
     const link = document.createElement("a");
     link.href = originalSrc;
     link.target = "_blank";
@@ -420,18 +412,42 @@ function openImageViewer(src, alt = "") {
     link.textContent = "Mở ảnh gốc trong tab mới ↗";
     Object.assign(link.style, {
       display: "inline-block",
-      marginTop: "10px",
+      marginTop: "12px",
       color: "#fff",
       textDecoration: "underline"
     });
     message.append(text, link);
     message.style.display = "block";
-    console.error("[Ku-mi] Không tải được ảnh zoom:", urls);
+    console.error("[Ku-mi] Không tải được ảnh zoom:", uniqueUrls);
   };
 
+  const tryNext = () => {
+    clearTimeout(timeoutId);
+    if (attempt >= uniqueUrls.length) {
+      showFailure();
+      return;
+    }
+
+    const url = uniqueUrls[attempt++];
+    image.onload = () => {
+      clearTimeout(timeoutId);
+      image.style.display = "block";
+      message.style.display = "none";
+    };
+    image.onerror = tryNext;
+    image.src = url;
+
+    // Một số link Drive không báo lỗi ngay mà bị treo; giới hạn mỗi lần thử.
+    timeoutId = setTimeout(tryNext, 9000);
+  };
+
+  message.style.display = "none";
+  message.replaceChildren();
+  image.style.display = "block";
+  image.alt = alt || "Ảnh sản phẩm";
   overlay.style.display = "flex";
-  image.src = "";
-  image.src = urls[0];
+  image.removeAttribute("src");
+  tryNext();
 }
 
 function closeImageViewer() {
