@@ -22,6 +22,30 @@ function normalize(s) {
   return String(s ?? "").trim().toLocaleLowerCase("vi");
 }
 function safeText(s) { return String(s ?? "").trim(); }
+function getImageUrl(value) {
+  const url = safeText(value);
+  if (!url) return "";
+
+  // Chuyển link chia sẻ Google Drive thành link ảnh
+  const match = url.match(
+    /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/
+  );
+
+  if (match) {
+    return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+  }
+
+  // Hỗ trợ link Google Drive dạng open?id=...
+  const openMatch = url.match(
+    /drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/
+  );
+
+  if (openMatch) {
+    return `https://drive.google.com/uc?export=view&id=${openMatch[1]}`;
+  }
+
+  return url;
+}
 function isPlaceholder(value) {
   return !value || value.startsWith("PASTE_") || value.includes("example.com");
 }
@@ -47,7 +71,7 @@ function normalizeProduct(row, index) {
     name: safeText(row.name),
     category: safeText(row.category) || "Khác",
     price: Number.isFinite(price) && price >= 0 ? price : 0,
-    image: safeText(row.image),
+    image: getImageUrl(row.image),
     shortDesc: safeText(row.short_desc),
     description: safeText(row.description) || safeText(row.short_desc),
     status: normalize(row.status) || "available",
