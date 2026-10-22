@@ -276,3 +276,4 @@ document.addEventListener("DOMContentLoaded", async () => {
     $("heroCount").textContent = "!";
   }
 });
+}
