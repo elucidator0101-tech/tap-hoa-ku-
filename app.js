@@ -203,6 +203,11 @@ function openDetails(p) {
   const visual = document.createElement("div");
   if (p.image && /^https?:\/\//i.test(p.image)) {
     const img = document.createElement("img"); img.className = "detail-image"; img.src = p.image; img.alt = p.name;
+    img.style.cursor = "zoom-in";
+img.title = "Bấm để xem ảnh lớn";
+img.addEventListener("click", () => {
+  openImageViewer(p.image, p.name);
+});
     img.onerror = () => { img.remove(); const fallback = document.createElement("div"); fallback.className="detail-image-fallback"; fallback.textContent="K+"; visual.appendChild(fallback); };
     visual.appendChild(img);
   } else { const fallback = document.createElement("div"); fallback.className="detail-image-fallback"; fallback.textContent="K+"; visual.appendChild(fallback); }
@@ -249,6 +254,10 @@ function bindImageViewer() {
     if (event.key === "Escape") closeImageViewer();
   });
 }
+document.addEventListener("DOMContentLoaded", async () => {
+  bindEvents();
+  bindImageViewer();
+  setContactLinks();
 function bindEvents() {
   ["searchInput","categoryFilter","priceFilter","sortFilter"].forEach(id => $(id).addEventListener(id === "searchInput" ? "input" : "change", applyFilters));
   $("resetFilters").addEventListener("click", () => { $("searchInput").value=""; $("categoryFilter").value=""; $("priceFilter").value=""; $("sortFilter").value="featured"; applyFilters(); });
