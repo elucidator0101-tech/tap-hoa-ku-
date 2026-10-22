@@ -198,80 +198,228 @@ function renderProducts() {
   $("emptyState").hidden = state.filtered.length > 0;
 }
 function openDetails(p) {
-  const content = $("modalContent"); content.replaceChildren();
-  const layout = document.createElement("div"); layout.className = "detail-layout";
+  const content = $("modalContent");
+  content.replaceChildren();
+
+  const layout = document.createElement("div");
+  layout.className = "detail-layout";
   const visual = document.createElement("div");
+
   if (p.image && /^https?:\/\//i.test(p.image)) {
-    const img = document.createElement("img"); img.className = "detail-image"; img.src = p.image; img.alt = p.name;
+    const img = document.createElement("img");
+    img.className = "detail-image";
+    img.src = p.image;
+    img.alt = p.name;
     img.style.cursor = "zoom-in";
-img.title = "Bấm để xem ảnh lớn";
-img.addEventListener("click", () => {
-  openImageViewer(p.image, p.name);
-});
-    img.onerror = () => { img.remove(); const fallback = document.createElement("div"); fallback.className="detail-image-fallback"; fallback.textContent="K+"; visual.appendChild(fallback); };
+    img.title = "Bấm để xem ảnh toàn màn hình";
+    img.addEventListener("click", (event) => {
+      event.stopPropagation();
+      openImageViewer(p.image, p.name);
+    });
+    img.onerror = () => {
+      img.remove();
+      const fallback = document.createElement("div");
+      fallback.className = "detail-image-fallback";
+      fallback.textContent = "Không tải được ảnh";
+      visual.appendChild(fallback);
+    };
     visual.appendChild(img);
-  } else { const fallback = document.createElement("div"); fallback.className="detail-image-fallback"; fallback.textContent="K+"; visual.appendChild(fallback); }
-  const copy = document.createElement("div"); copy.className = "detail-copy";
-  const category = document.createElement("div"); category.className = "product-category"; category.textContent = `${p.category} · ${p.id}`;
-  const title = document.createElement("h2"); title.id = "modalTitle"; title.textContent = p.name;
-  const price = document.createElement("div"); price.className = "detail-price"; price.textContent = money(p.price);
-  const status = document.createElement("div"); status.className = "product-badge" + (p.status === "sold" ? " sold-badge" : ""); status.style.position="static"; status.style.display="inline-block"; status.textContent = p.status === "sold" ? "Đã bán" : "Đang nhận tư vấn";
-  const desc = document.createElement("p"); desc.className = "detail-desc"; desc.textContent = p.description || p.shortDesc || "Chưa có mô tả chi tiết.";
-  const note = document.createElement("p"); note.className = "detail-desc"; note.textContent = p.contactNote ? "Ghi chú: " + p.contactNote : "Nhắn shop để xác nhận tình trạng, giá và cách nhận hàng.";
-  const contact = document.createElement("a"); contact.className = "detail-contact"; contact.textContent = "Liên hệ Zalo ↗"; contact.href = isPlaceholder(ZALO_URL) ? "#" : ZALO_URL; contact.target = "_blank"; contact.rel = "noopener";
-  if (isPlaceholder(ZALO_URL)) contact.addEventListener("click", e => {e.preventDefault(); alert("Hãy điền ZALO_URL trong app.js trước khi xuất bản.");});
-  copy.append(category,title,price,status,desc,note,contact); layout.append(visual,copy); content.appendChild(layout);
-  $("productModal").hidden = false; document.body.style.overflow = "hidden"; $("modalClose").focus();
+  } else {
+    const fallback = document.createElement("div");
+    fallback.className = "detail-image-fallback";
+    fallback.textContent = "Chưa có ảnh";
+    visual.appendChild(fallback);
+  }
+
+  const copy = document.createElement("div");
+  copy.className = "detail-copy";
+
+  const category = document.createElement("div");
+  category.className = "product-category";
+  category.textContent = `${p.category} · ${p.id}`;
+
+  const title = document.createElement("h2");
+  title.id = "modalTitle";
+  title.textContent = p.name;
+
+  const price = document.createElement("div");
+  price.className = "detail-price";
+  price.textContent = money(p.price);
+
+  const status = document.createElement("div");
+  status.className = "product-badge" + (p.status === "sold" ? " sold-badge" : "");
+  status.style.position = "static";
+  status.style.display = "inline-block";
+  status.textContent = p.status === "sold" ? "Đã bán" : "Đang nhận tư vấn";
+
+  const desc = document.createElement("p");
+  desc.className = "detail-desc";
+  desc.textContent = p.description || p.shortDesc || "Chưa có mô tả chi tiết.";
+
+  const note = document.createElement("p");
+  note.className = "detail-desc";
+  note.textContent = p.contactNote
+    ? "Ghi chú: " + p.contactNote
+    : "Nhắn shop để xác nhận tình trạng, giá và cách nhận hàng.";
+
+  const contact = document.createElement("a");
+  contact.className = "detail-contact";
+  contact.textContent = "Liên hệ Zalo ↗";
+  contact.href = isPlaceholder(ZALO_URL) ? "#" : ZALO_URL;
+  contact.target = "_blank";
+  contact.rel = "noopener";
+  if (isPlaceholder(ZALO_URL)) {
+    contact.addEventListener("click", (event) => {
+      event.preventDefault();
+      alert("Hãy điền ZALO_URL trong app.js trước khi xuất bản.");
+    });
+  }
+
+  copy.append(category, title, price, status, desc, note, contact);
+  layout.append(visual, copy);
+  content.appendChild(layout);
+
+  $("productModal").hidden = false;
+  document.body.style.overflow = "hidden";
+  $("modalClose").focus();
 }
-function closeDetails() { $("productModal").hidden = true; document.body.style.overflow = ""; }
+
+function closeDetails() {
+  $("productModal").hidden = true;
+  document.body.style.overflow = "";
+}
+
+let imageViewerElement = null;
+
+function ensureImageViewer() {
+  // Tạo cửa sổ xem ảnh bằng JavaScript nên không cần sửa index.html.
+  if (imageViewerElement) return imageViewerElement;
+
+  const overlay = document.createElement("div");
+  overlay.id = "imageViewer";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", "Xem ảnh tài khoản");
+  Object.assign(overlay.style, {
+    position: "fixed",
+    inset: "0",
+    zIndex: "999999",
+    display: "none",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "24px",
+    boxSizing: "border-box",
+    background: "rgba(0,0,0,.94)",
+    cursor: "zoom-out"
+  });
+
+  const close = document.createElement("button");
+  close.type = "button";
+  close.textContent = "×";
+  close.setAttribute("aria-label", "Đóng ảnh");
+  Object.assign(close.style, {
+    position: "absolute",
+    top: "12px",
+    right: "18px",
+    width: "48px",
+    height: "48px",
+    border: "0",
+    borderRadius: "50%",
+    background: "rgba(255,255,255,.18)",
+    color: "#fff",
+    fontSize: "36px",
+    lineHeight: "1",
+    cursor: "pointer"
+  });
+
+  const image = document.createElement("img");
+  image.id = "imageViewerImg";
+  image.alt = "";
+  Object.assign(image.style, {
+    display: "block",
+    maxWidth: "96vw",
+    maxHeight: "92vh",
+    width: "auto",
+    height: "auto",
+    objectFit: "contain",
+    cursor: "default"
+  });
+
+  close.addEventListener("click", closeImageViewer);
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) closeImageViewer();
+  });
+  image.addEventListener("click", (event) => event.stopPropagation());
+
+  overlay.append(close, image);
+  document.body.appendChild(overlay);
+  imageViewerElement = overlay;
+  return overlay;
+}
+
 function openImageViewer(src, alt = "") {
   if (!src) return;
-
-  $("imageViewerImg").src = src;
-  $("imageViewerImg").alt = alt;
-  $("imageViewer").hidden = false;
+  const overlay = ensureImageViewer();
+  const image = $("imageViewerImg");
+  image.src = src;
+  image.alt = alt;
+  overlay.style.display = "flex";
 }
 
 function closeImageViewer() {
-  $("imageViewer").hidden = true;
-  $("imageViewerImg").src = "";
+  if (!imageViewerElement) return;
+  imageViewerElement.style.display = "none";
+  const image = $("imageViewerImg");
+  if (image) image.src = "";
 }
 
-function bindImageViewer() {
-  $("imageViewerClose").addEventListener("click", closeImageViewer);
+function bindEvents() {
+  ["searchInput", "categoryFilter", "priceFilter", "sortFilter"].forEach((id) => {
+    $(id).addEventListener(id === "searchInput" ? "input" : "change", applyFilters);
+  });
 
-  $("imageViewer").addEventListener("click", (event) => {
-    if (event.target === $("imageViewer")) {
+  $("resetFilters").addEventListener("click", () => {
+    $("searchInput").value = "";
+    $("categoryFilter").value = "";
+    $("priceFilter").value = "";
+    $("sortFilter").value = "featured";
+    applyFilters();
+  });
+
+  $("modalClose").addEventListener("click", closeDetails);
+  $("modalBackdrop").addEventListener("click", closeDetails);
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
       closeImageViewer();
+      closeDetails();
+    }
+    if (
+      event.key === "/" &&
+      !["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)
+    ) {
+      event.preventDefault();
+      $("searchInput").focus();
     }
   });
 
-  $("imageViewerImg").addEventListener("click", (event) => {
-    event.stopPropagation();
-  });
-
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") closeImageViewer();
-  });
-}
-document.addEventListener("DOMContentLoaded", async () => {
-  bindEvents();
-  bindImageViewer();
-  setContactLinks();
-function bindEvents() {
-  ["searchInput","categoryFilter","priceFilter","sortFilter"].forEach(id => $(id).addEventListener(id === "searchInput" ? "input" : "change", applyFilters));
-  $("resetFilters").addEventListener("click", () => { $("searchInput").value=""; $("categoryFilter").value=""; $("priceFilter").value=""; $("sortFilter").value="featured"; applyFilters(); });
-  $("modalClose").addEventListener("click", closeDetails);
-  $("modalBackdrop").addEventListener("click", closeDetails);
-  document.addEventListener("keydown", e => { if (e.key === "Escape") closeDetails(); if (e.key === "/" && !["INPUT","TEXTAREA"].includes(document.activeElement.tagName)) { e.preventDefault(); $("searchInput").focus(); } });
   $("year").textContent = String(new Date().getFullYear());
 }
+
 document.addEventListener("DOMContentLoaded", async () => {
-  bindEvents(); setContactLinks();
-  try { await loadProducts(); }
-  catch (error) {
+  bindEvents();
+  setContactLinks();
+
+  try {
+    await loadProducts();
+  } catch (error) {
     console.error("[Ku-mi] Không tải được Google Sheets CSV:", error);
-    setStatus("Lỗi tải dữ liệu: " + (error.message || "Không rõ nguyên nhân") + " Mở F12 → Console/Network để kiểm tra link CSV.", "error");
+    setStatus(
+      "Lỗi tải dữ liệu: " +
+        (error.message || "Không rõ nguyên nhân") +
+        " Mở F12 → Console/Network để kiểm tra link CSV.",
+      "error"
+    );
     $("resultCount").textContent = "Không tải được dữ liệu";
     $("heroCount").textContent = "!";
   }
