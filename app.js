@@ -1,8 +1,3 @@
-/*
- * TẠP HÓA KU-MI
- * 1) Thay SHEET_CSV_URL bằng link CSV đã Publish to web từ Google Sheets.
- * 2) Thay ZALO_URL bằng đường dẫn liên hệ Zalo thật của shop.
- */
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSFisP998E2xL6HlbBouJJ6uipeBmapGlmbiWa0QmvuqJ7D7IwSOefUThQW6J4lOg/pub?gid=1637839878&single=true&output=csv";
 const ZALO_URL = "https://zalo.me/g/gaeikv060";
 
