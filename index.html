@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#11151d">
-  <meta name="description" content="Tạp hóa Ku-mi - khám phá sản phẩm, xem giá và liên hệ tư vấn.">
-  <title>Tạp hóa Ku-mi | Chọn món bạn thích</title>
+  <meta name="theme-color" content="#071522">
+  <meta name="description" content="Tạp hóa Ku-mi — khám phá sản phẩm được chọn lọc, xem giá và liên hệ shop qua Zalo.">
+  <title>Tạp hóa Ku-mi — Gaming Market</title>
   <link rel="stylesheet" href="styles.css">
   <script defer src="https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js"></script>
   <script defer src="app.js"></script>
@@ -24,11 +24,11 @@
   <main>
     <section class="hero">
       <div class="hero-copy">
-        <div class="eyebrow"><span class="pulse"></span> KU-MI MARKET / ONLINE</div>
-        <h1>Đồ hay ho.<br><span>Giá dễ chịu.</span></h1>
-        <p>Ghé xem những món được chọn lọc tại Ku-mi. Tìm sản phẩm, xem thông tin rồi nhắn cho shop để được tư vấn.</p>
-        <a class="primary-btn" href="#products">Khám phá sản phẩm <span>↓</span></a>
-        <div class="hero-stats"><div><strong id="heroCount">—</strong><small>sản phẩm đang hiển thị</small></div><div><strong>0%</strong><small>thanh toán online</small></div></div>
+        <div class="eyebrow"><span class="pulse"></span> KU-MI MARKET <span class="eyebrow-divider">/</span> ONLINE</div>
+        <h1>Loot món chất.<br><span>Giá cực chill.</span></h1>
+        <p>Khám phá những món đồ được Ku-mi chọn lọc. Tìm nhanh, xem chi tiết và nhắn shop để được tư vấn trực tiếp.</p>
+        <a class="primary-btn" href="#products">Khám phá kho đồ <span>↓</span></a>
+        <div class="hero-stats"><div><strong id="heroCount">—</strong><small>sản phẩm đang hiển thị</small></div><div><strong>100%</strong><small>tư vấn trực tiếp</small></div></div>
       </div>
       <div class="hero-art" aria-hidden="true">
         <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
@@ -38,7 +38,7 @@
     </section>
 
     <section class="catalog section-wrap" id="products">
-      <div class="section-heading"><div><div class="eyebrow">THE CATALOG</div><h2>Tìm món của bạn<span>.</span></h2></div><p id="catalogHint">Danh sách được đồng bộ từ Google Sheets.</p></div>
+      <div class="section-heading"><div><div class="eyebrow">THE CATALOG</div><h2>Tìm món của bạn<span>.</span></h2></div><p id="catalogHint">Danh sách sản phẩm đồng bộ trực tiếp từ Google Sheets.</p></div>
       <div class="filters">
         <label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Tìm theo tên hoặc mô tả..." autocomplete="off"><kbd>/</kbd></label>
         <label class="filter-field"><span>Danh mục</span><select id="categoryFilter"><option value="">Tất cả danh mục</option></select></label>
@@ -53,12 +53,12 @@
 
     <section class="about section-wrap" id="about">
       <div class="about-mark">K<span>+</span></div>
-      <div><div class="eyebrow">A SMALL SHOP, GOOD FINDS</div><h2>Ku-mi — mua sắm theo cách <span>đơn giản hơn.</span></h2><p>Website dùng để giới thiệu sản phẩm và cung cấp thông tin. Bạn trao đổi trực tiếp với shop để kiểm tra tình trạng, phí giao hàng và cách đặt mua. Website không thu thập thanh toán trực tuyến.</p></div>
+      <div><div class="eyebrow">A SMALL SHOP, GOOD FINDS</div><h2>Ku-mi — chọn món hay theo cách <span>đơn giản hơn.</span></h2><p>Website dùng để giới thiệu sản phẩm và cung cấp thông tin. Bạn trao đổi trực tiếp với shop để kiểm tra tình trạng, phí giao hàng và cách đặt mua. Website không thu thập thanh toán trực tuyến.</p></div>
       <a id="aboutZalo" class="outline-btn" href="#" target="_blank" rel="noopener">Chat với Ku-mi ↗</a>
     </section>
   </main>
 
-  <footer class="site-footer"><a class="footer-brand" href="#">TẠP HÓA KU-MI <span>© <span id="year"></span></span></a><span>Built for curious people.</span><a href="#products">Lên đầu trang ↑</a></footer>
+  <footer class="site-footer"><a class="footer-brand" href="#">TẠP HÓA KU-MI <span>© <span id="year"></span></span></a><span>GEAR UP YOUR DAILY.</span><a href="#products">Lên đầu trang ↑</a></footer>
 
   <div id="productModal" class="modal" hidden>
     <button class="modal-backdrop" id="modalBackdrop" aria-label="Đóng chi tiết"></button>
