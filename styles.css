@@ -283,3 +283,34 @@ body{background:radial-gradient(ellipse at 82% 18%,rgba(0,133,186,.16),transpare
 @media(prefers-reduced-motion:reduce){
  .primary-btn,.header-contact{transition:none}
 }
+.footer-installment {
+  margin-top: 24px;
+  padding: 16px;
+  text-align: center;
+  border-top: 1px solid rgba(0, 229, 255, 0.25);
+  color: #b8cbd8;
+  font-size: 14px;
+}
+
+.installment-title {
+  display: block;
+  margin-bottom: 8px;
+  color: #00e5ff;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.footer-installment p {
+  margin: 0;
+  line-height: 1.7;
+}
+
+.footer-installment a {
+  color: #00e5ff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.footer-installment a:hover {
+  text-decoration: underline;
+}
