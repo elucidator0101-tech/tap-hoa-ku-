@@ -224,3 +224,23 @@ h1 span,.section-heading h2 span,.about h2 span{color:var(--ice)}
 }
 .featured-section[hidden]{display:none!important}
 @media(max-width:620px){.mobile-zalo{z-index:10}}
+
+
+/* Hiển thị giá bán và giá tham chiếu (nếu có ưu đãi hợp lệ) */
+.price-stack{display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 7px;min-width:0}
+.current-price{color:var(--ice)}
+.original-price{color:#8ca1af;font-size:11px;font-weight:500;text-decoration:line-through;text-decoration-thickness:1px;overflow-wrap:anywhere}
+.discount-badge{display:inline-flex;align-items:center;border:1px solid rgba(255,139,139,.35);border-radius:5px;background:rgba(255,91,105,.10);color:#ffb2b8;padding:2px 5px;font-size:9px;font-weight:800;line-height:1.4;white-space:nowrap}
+.detail-pricing{margin:10px 0 15px}
+.detail-pricing .detail-price{margin:0 0 4px}
+.detail-price-meta{display:flex;flex-wrap:wrap;align-items:center;gap:7px}
+.detail-price-meta .original-price{font-size:12px}
+.product-bottom .price-stack{flex:1 1 110px}
+@media(max-width:620px){
+  .product-bottom .price-stack{flex-basis:100%;gap:3px 6px}
+  .product-price{font-size:11px;line-height:1.4}
+  .original-price{font-size:10px}
+  .discount-badge{font-size:8px;padding:2px 4px}
+  .detail-pricing .detail-price{font-size:22px;overflow-wrap:anywhere}
+  .detail-price-meta .original-price{font-size:11px}
+}
