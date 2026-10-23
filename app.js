@@ -73,11 +73,16 @@ function normalizeStatus(value) {
 }
 function normalizeProduct(row, index) {
   const price = parsePrice(row.price);
+  // original_price là cột tùy chọn; giá tham chiếu chỉ hiện khi cao hơn giá bán.
+  const original = safeText(row.original_price) ? parsePrice(row.original_price) : NaN;
+  const validPrice = Number.isFinite(price) && price >= 0 ? price : null;
+  const validOriginal = Number.isFinite(original) && original >= 0 ? original : null;
   return {
     id: safeText(row.id) || `ROW-${index + 1}`,
     name: safeText(row.name),
     category: safeText(row.category) || "Khác",
-    price: Number.isFinite(price) && price >= 0 ? price : null,
+    price: validPrice,
+    originalPrice: validOriginal !== null && validPrice !== null && validOriginal > validPrice ? validOriginal : null,
     image: getImageUrl(row.image),
     shortDesc: safeText(row.short_desc),
     description: safeText(row.description) || safeText(row.short_desc),
@@ -199,10 +204,18 @@ function createProductCard(p, compact = false) {
   const title = document.createElement("h3"); title.textContent = p.name;
   const desc = document.createElement("p"); desc.textContent = p.shortDesc || "Liên hệ Ku-mi để biết thêm thông tin.";
   const bottom = document.createElement("div"); bottom.className = "product-bottom";
-  const amount = document.createElement("span"); amount.className = "product-price"; amount.textContent = p.price === null ? "Liên hệ báo giá" : money(p.price);
+  const pricing = document.createElement("div"); pricing.className = "price-stack";
+  const amount = document.createElement("span"); amount.className = "product-price current-price"; amount.textContent = p.price === null ? "Liên hệ báo giá" : money(p.price);
+  pricing.appendChild(amount);
+  if (p.originalPrice !== null) {
+    const oldPrice = document.createElement("span"); oldPrice.className = "original-price"; oldPrice.textContent = money(p.originalPrice);
+    const discount = document.createElement("span"); discount.className = "discount-badge";
+    discount.textContent = `-${Math.round((1 - p.price / p.originalPrice) * 100)}%`;
+    pricing.append(oldPrice, discount);
+  }
   const link = document.createElement("span"); link.className = "details-link"; link.textContent = "Chi tiết ↗";
   if (p.status === "sold" || p.status === "coming") card.classList.add("product-unavailable");
-  bottom.append(amount, link); info.append(cat,title,desc,bottom); card.append(imageWrap,info);
+  bottom.append(pricing, link); info.append(cat,title,desc,bottom); card.append(imageWrap,info);
   const open = () => openDetails(p);
   card.addEventListener("click", open);
   card.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
@@ -269,9 +282,24 @@ function openDetails(p) {
   title.id = "modalTitle";
   title.textContent = p.name;
 
+  const pricing = document.createElement("div");
+  pricing.className = "detail-pricing";
   const price = document.createElement("div");
-  price.className = "detail-price";
+  price.className = "detail-price current-price";
   price.textContent = p.price === null ? "Liên hệ báo giá" : money(p.price);
+  pricing.appendChild(price);
+  if (p.originalPrice !== null) {
+    const priceMeta = document.createElement("div");
+    priceMeta.className = "detail-price-meta";
+    const oldPrice = document.createElement("span");
+    oldPrice.className = "original-price";
+    oldPrice.textContent = `Giá tham chiếu: ${money(p.originalPrice)}`;
+    const discount = document.createElement("span");
+    discount.className = "discount-badge";
+    discount.textContent = `Tiết kiệm ${Math.round((1 - p.price / p.originalPrice) * 100)}%`;
+    priceMeta.append(oldPrice, discount);
+    pricing.appendChild(priceMeta);
+  }
 
   const status = document.createElement("div");
   status.className = "product-badge" + (p.status === "sold" ? " sold-badge" : "");
@@ -302,7 +330,7 @@ function openDetails(p) {
     });
   }
 
-  copy.append(category, title, price, status, desc, note, contact);
+  copy.append(category, title, pricing, status, desc, note, contact);
   layout.append(visual, copy);
   content.appendChild(layout);
 
