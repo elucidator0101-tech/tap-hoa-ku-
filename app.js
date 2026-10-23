@@ -45,7 +45,7 @@ function isPlaceholder(value) {
   return !value || value.startsWith("PASTE_") || value.includes("example.com");
 }
 function setContactLinks() {
-  for (const id of ["headerZalo", "aboutZalo"]) {
+  for (const id of ["headerZalo", "aboutZalo", "mobileZalo"]) {
     const el = $(id);
     if (isPlaceholder(ZALO_URL)) {
       el.href = "#";
@@ -58,18 +58,30 @@ function setContactLinks() {
     }
   }
 }
+function parsePrice(value) {
+  // Chấp nhận các dạng 120000, 120.000, 120,000đ hoặc 120 000 đ.
+  const priceText = String(value ?? "").trim().replace(/[^0-9-]/g, "");
+  if (!priceText || priceText === "-") return NaN;
+  return Number(priceText);
+}
+function normalizeStatus(value) {
+  const status = normalize(value).replace(/[ _-]+/g, " ");
+  if (["sold", "sold out", "đã bán", "het hang", "hết hàng", "out of stock"].includes(status)) return "sold";
+  if (["hidden", "ẩn", "an", "hide", "draft", "nháp"].includes(status)) return "hidden";
+  if (["coming soon", "sắp về", "sap ve", "coming"].includes(status)) return "coming";
+  return "available";
+}
 function normalizeProduct(row, index) {
-  const priceText = String(row.price ?? "").trim().replace(/[.\s₫đ,]/gi, "");
-  const price = Number(priceText);
+  const price = parsePrice(row.price);
   return {
     id: safeText(row.id) || `ROW-${index + 1}`,
     name: safeText(row.name),
     category: safeText(row.category) || "Khác",
-    price: Number.isFinite(price) && price >= 0 ? price : 0,
+    price: Number.isFinite(price) && price >= 0 ? price : null,
     image: getImageUrl(row.image),
     shortDesc: safeText(row.short_desc),
     description: safeText(row.description) || safeText(row.short_desc),
-    status: normalize(row.status) || "available",
+    status: normalizeStatus(row.status),
     featured: ["true", "yes", "1", "có"].includes(normalize(row.featured)),
     contactNote: safeText(row.contact_note)
   };
@@ -103,13 +115,23 @@ async function loadProducts() {
   if (missing.length) {
     throw new Error("CSV thiếu cột: " + missing.join(", ") + ". Kiểm tra tên cột ở hàng đầu tiên của Google Sheets.");
   }
-  state.all = (parsed.data || [])
-    .map(normalizeProduct)
+  const rawRows = (parsed.data || []).filter(row => Object.values(row || {}).some(value => safeText(value)));
+  state.all = rawRows
+    .map((row, index) => normalizeProduct(row, index))
     .filter(p => p.name && p.status !== "hidden");
+  const issues = [];
+  const duplicateIds = state.all.map(p => p.id).filter((id, i, arr) => arr.indexOf(id) !== i);
+  if (duplicateIds.length) issues.push(`ID trùng: ${[...new Set(duplicateIds)].slice(0, 4).join(", ")}`);
+  const missingPrices = state.all.filter(p => p.price === null);
+  if (missingPrices.length) issues.push(`${missingPrices.length} sản phẩm thiếu giá hoặc giá không hợp lệ`);
+  const missingImages = state.all.filter(p => !p.image);
+  if (missingImages.length) issues.push(`${missingImages.length} sản phẩm chưa có ảnh`);
+  if (issues.length) console.warn("[Ku-mi] Cần rà soát dữ liệu Google Sheets:", issues);
   if (parsed.errors?.length) {
     console.warn("Papa Parse báo lỗi CSV; kiểm tra dữ liệu trong Console.", parsed.errors);
   }
   fillCategories();
+  renderFeatured();
   applyFilters();
   if (!state.all.length) {
     setStatus("Đã kết nối CSV nhưng chưa có sản phẩm hiển thị. Kiểm tra dữ liệu, cột status và xem có dòng nào có tên sản phẩm hay không.", "error");
@@ -130,9 +152,9 @@ function fillCategories() {
 }
 function priceMatches(price, filter) {
   if (!filter) return true;
-  if (filter === "1000000+") return price > 1000000;
+  if (filter === "1000000+") return price !== null && price > 1000000;
   const [min, max] = filter.split("-").map(Number);
-  return price >= min && price <= max;
+  return price !== null && price >= min && price <= max;
 }
 function applyFilters() {
   const query = normalize($("searchInput").value);
@@ -145,16 +167,16 @@ function applyFilters() {
       (!category || p.category === category) &&
       priceMatches(p.price, price);
   });
-  if (sort === "price-asc") list.sort((a,b)=>a.price-b.price);
-  else if (sort === "price-desc") list.sort((a,b)=>b.price-a.price);
+  if (sort === "price-asc") list.sort((a,b)=>(a.price ?? Infinity)-(b.price ?? Infinity));
+  else if (sort === "price-desc") list.sort((a,b)=>(b.price ?? -Infinity)-(a.price ?? -Infinity));
   else if (sort === "name") list.sort((a,b)=>a.name.localeCompare(b.name,"vi"));
   else list.sort((a,b)=>Number(b.featured)-Number(a.featured));
   state.filtered = list;
   renderProducts();
 }
-function createProductCard(p) {
+function createProductCard(p, compact = false) {
   const card = document.createElement("article");
-  card.className = "product-card";
+  card.className = "product-card" + (compact ? " featured-card" : "");
   card.tabIndex = 0;
   card.setAttribute("role", "button");
   card.setAttribute("aria-label", `Xem chi tiết ${p.name}`);
@@ -169,21 +191,31 @@ function createProductCard(p) {
     const fallback = document.createElement("div"); fallback.className="image-placeholder"; fallback.textContent="K+"; imageWrap.appendChild(fallback);
   }
   const badge = document.createElement("span");
-  badge.className = "product-badge" + (p.status === "sold" ? " sold-badge" : "");
-  badge.textContent = p.status === "sold" ? "Đã bán" : (p.featured ? "Ku-mi select" : p.category);
+  badge.className = "product-badge" + (p.status === "sold" ? " sold-badge" : p.status === "coming" ? " coming-badge" : "");
+  badge.textContent = p.status === "sold" ? "Đã bán" : p.status === "coming" ? "Sắp về" : (p.featured ? "Ku-mi select" : p.category);
   imageWrap.appendChild(badge);
   const info = document.createElement("div"); info.className = "product-info";
   const cat = document.createElement("div"); cat.className = "product-category"; cat.textContent = p.category;
   const title = document.createElement("h3"); title.textContent = p.name;
   const desc = document.createElement("p"); desc.textContent = p.shortDesc || "Liên hệ Ku-mi để biết thêm thông tin.";
   const bottom = document.createElement("div"); bottom.className = "product-bottom";
-  const amount = document.createElement("span"); amount.className = "product-price"; amount.textContent = money(p.price);
+  const amount = document.createElement("span"); amount.className = "product-price"; amount.textContent = p.price === null ? "Liên hệ báo giá" : money(p.price);
   const link = document.createElement("span"); link.className = "details-link"; link.textContent = "Chi tiết ↗";
+  if (p.status === "sold" || p.status === "coming") card.classList.add("product-unavailable");
   bottom.append(amount, link); info.append(cat,title,desc,bottom); card.append(imageWrap,info);
   const open = () => openDetails(p);
   card.addEventListener("click", open);
   card.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
   return card;
+}
+function renderFeatured() {
+  const section = $("featuredSection");
+  const grid = $("featuredGrid");
+  if (!section || !grid) return;
+  grid.replaceChildren();
+  const featured = state.all.filter(p => p.featured && p.status !== "sold" && p.status !== "coming").slice(0, 4);
+  section.hidden = featured.length === 0;
+  featured.forEach(p => grid.appendChild(createProductCard(p, true)));
 }
 function renderProducts() {
   const grid = $("productGrid"); grid.replaceChildren();
@@ -239,13 +271,13 @@ function openDetails(p) {
 
   const price = document.createElement("div");
   price.className = "detail-price";
-  price.textContent = money(p.price);
+  price.textContent = p.price === null ? "Liên hệ báo giá" : money(p.price);
 
   const status = document.createElement("div");
   status.className = "product-badge" + (p.status === "sold" ? " sold-badge" : "");
   status.style.position = "static";
   status.style.display = "inline-block";
-  status.textContent = p.status === "sold" ? "Đã bán" : "Đang nhận tư vấn";
+  status.textContent = p.status === "sold" ? "Đã bán" : p.status === "coming" ? "Sắp về hàng" : "Đang nhận tư vấn";
 
   const desc = document.createElement("p");
   desc.className = "detail-desc";
