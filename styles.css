@@ -244,3 +244,42 @@ h1 span,.section-heading h2 span,.about h2 span{color:var(--ice)}
   .detail-pricing .detail-price{font-size:22px;overflow-wrap:anywhere}
   .detail-price-meta .original-price{font-size:11px}
 }
+
+
+/* KUMI STORE — neon hero art refinement */
+:root{--ice:#8aefff;--ice-soft:#b8f7ff;--ice-strong:#45d8f5}
+body{background:radial-gradient(ellipse at 82% 18%,rgba(0,133,186,.16),transparent 35%),linear-gradient(135deg,#03101c 0%,#061927 52%,#03111d 100%)}
+.site-header{border-bottom-color:rgba(69,216,245,.18)}
+.brand-mark{box-shadow:0 0 28px rgba(69,216,245,.28),inset 0 0 18px rgba(255,255,255,.15)}
+.brand>span:last-child strong{letter-spacing:1.5px}
+.brand>span:last-child small{letter-spacing:2px}
+.hero{min-height:610px;padding-top:74px;padding-bottom:68px;gap:24px}
+.hero h1{font-size:clamp(48px,5.2vw,78px);line-height:1.04;letter-spacing:-3.8px}
+.hero h1 span{color:#31d9f5;text-shadow:0 0 35px rgba(49,217,245,.13)}
+.hero-copy>p{max-width:540px}
+.primary-btn,.header-contact{box-shadow:0 0 26px rgba(69,216,245,.14);transition:transform .2s ease,box-shadow .2s ease}
+.primary-btn:hover,.header-contact:hover{transform:translateY(-2px);box-shadow:0 0 35px rgba(69,216,245,.32)}
+.hero-art{height:450px;overflow:visible;background-image:linear-gradient(90deg,#041521 0%,rgba(4,21,33,.28) 20%,rgba(4,21,33,0) 48%),url("hero-background.png");background-repeat:no-repeat;background-position:center,right center;background-size:cover,auto 118%;border-radius:24px;filter:saturate(1.12)}
+.hero-art:before{width:320px;height:320px;background:rgba(0,190,255,.13);filter:blur(60px)}
+/* The image already contains the holographic card, so avoid drawing a second card on top. */
+.hero-art .loot-card,.hero-art .orbit,.hero-art .floating-chip{display:none}
+.eyebrow{color:#46e6fb}
+.pulse{box-shadow:0 0 15px #2be3ff}
+.section-heading h2 span,.featured-heading h3 span{color:#42e4fa}
+.about{border-color:rgba(69,216,245,.2);box-shadow:0 15px 55px rgba(0,0,0,.14)}
+@media(max-width:900px){
+ .hero{min-height:520px;grid-template-columns:1fr 1fr;gap:12px;padding-top:58px}
+ .hero h1{font-size:clamp(42px,6vw,60px);letter-spacing:-2.8px}
+ .hero-art{height:360px;background-size:cover,auto 105%}
+}
+@media(max-width:620px){
+ .hero{grid-template-columns:1fr;gap:0;padding-top:48px}
+ .hero h1{font-size:clamp(43px,11vw,58px);letter-spacing:-2.4px}
+ .hero-art{height:250px;margin:10px -8px 0;background-position:center,right center;background-size:cover,auto 115%;border-radius:18px}
+ .hero-art:before{width:180px;height:180px}
+ .brand>span:last-child strong{font-size:11px;letter-spacing:1px}
+ .brand>span:last-child small{font-size:8px;letter-spacing:1.2px}
+}
+@media(prefers-reduced-motion:reduce){
+ .primary-btn,.header-contact{transition:none}
+}
